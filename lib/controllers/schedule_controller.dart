@@ -101,16 +101,10 @@ class ScheduleController extends GetxController {
   }
 
   void scheduleNotification(Schedule schedule) {
-  // Assuming schedule.endTime is a string like "10:30 PM" or "22:30:00"
-  
-  // Parse the endTime. Adjust this to match the exact format you store in Firestore.
-  // Here we assume endTime is in the format of "HH:mm a"
   TimeOfDay endTime = TimeOfDay.fromDateTime(DateFormat.jm().parse(schedule.endTime));
 
-  // Get the current date (or you could use a date associated with the schedule if available)
   DateTime currentDate = DateTime.now();
 
-  // Create a DateTime object for the end of the schedule today
   DateTime scheduleEndDateTime = DateTime(
     currentDate.year,
     currentDate.month,
@@ -125,8 +119,8 @@ class ScheduleController extends GetxController {
   // Schedule the notification
   NotificationService.showScheduledNotification(
     id: 1,
-    title: "Schedule Reminder",
-    body: "Reminder: Your schedule is ending soon at ${schedule.endTime}.",
+    title: "Schedule",
+    body: "${schedule.deviceId} is schedule to turn off in 5 minutes.",
     scheduledDate: notificationTime,
   );
 }

@@ -16,7 +16,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Controllers for editing profile fields
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
   // GlobalKey for the form
@@ -37,26 +36,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           userData = userDoc.data() as Map<String, dynamic>?;
           _nameController.text = userData?['name'] ?? '';
-          _emailController.text = userData?['email'] ?? '';
           _phoneController.text = userData?['phone'] ?? '';
         });
       }
     }
   }
 
-  // Method to update the user details
+  // Method to update the user details (name and phone only)
   Future<void> _updateUserDetails() async {
     if (_formKey.currentState!.validate()) {
       // Validate inputs before updating
       if (user != null) {
         try {
-          // Update Firebase Authentication email
-          await user!.updateEmail(_emailController.text);
-
-          // Update Firestore user data
+          // Update Firestore user data (name and phone only)
           await _firestore.collection('users').doc(user!.uid).update({
             'name': _nameController.text,
-            'email': _emailController.text,
             'phone': _phoneController.text,
           });
 
@@ -98,16 +92,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         return null;
                       }),
                       SizedBox(height: 20),
-                      _buildTextField("Email", _emailController, (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Email cannot be empty';
-                        }
-                        if (!GetUtils.isEmail(value)) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      }),
+
+                      // Email is read-only and not editable
+                      _buildReadOnlyTextField("Email", userData?['email'] ?? ''),
                       SizedBox(height: 20),
+
                       _buildTextField("Phone Number", _phoneController, (value) {
                         if (value == null || value.isEmpty) {
                           return 'Phone number cannot be empty';
@@ -138,7 +127,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper method to build text fields with validation
   Widget _buildTextField(String label, TextEditingController controller, String? Function(String?)? validator) {
     return TextFormField(
       controller: controller,
@@ -146,7 +134,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         labelText: label,
         border: OutlineInputBorder(),
       ),
-      validator: validator,  // Pass the validation function
+      validator: validator,  
+    );
+  }
+
+  Widget _buildReadOnlyTextField(String label, String value) {
+    return TextFormField(
+      initialValue: value,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+      ),
     );
   }
 }
