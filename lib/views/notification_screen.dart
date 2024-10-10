@@ -125,9 +125,15 @@ class NotificationScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final notification = notifications[index];
               return ListTile(
-                title: Text(notification.type == 'security_breach'
-                    ? "Breach on Device: ${notification.deviceId}"
-                    : "Device Status Change on Device: ${notification.deviceId}"),
+                title: Text(
+                  notification.type == 'schedule'
+                      ? "Scheduled Task for Device: ${notification.deviceId}"
+                      : notification.type == 'power_threshold_exceeded'
+                          ? "Power Consumption Alert: ${notification.deviceId}"
+                          : notification.type == 'status_change'
+                              ? "Status Change on Device: ${notification.deviceId}"
+                              : "Unknown Notification Type for Device: ${notification.deviceId}",
+                ),
                 subtitle: Text(
                   "${notification.description}\n${notification.timestamp}",
                   style: TextStyle(color: Colors.grey),

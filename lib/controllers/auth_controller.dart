@@ -24,7 +24,6 @@ class AuthController extends GetxController {
       Get.offAll(() => LoginScreen());
     } else {
       Get.offAll(() => HomeScreen());
-      //Get.offAll(() => NotificationDemoScreen());
     }
   }
 

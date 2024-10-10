@@ -14,26 +14,25 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   final powerController = TextEditingController(); // New field for power consumption
   final DeviceController deviceController = Get.find();
 
-  String selectedDeviceName = "Custom"; // Selected device name from dropdown
-  String selectedDeviceType = "Light"; // Selected device type from dropdown
-  bool isCustomDeviceName = false; // Flag to show/hide custom device name field
+  String selectedDeviceName = "Custom"; 
+  String selectedDeviceType = "Custom"; 
+  bool isCustomDeviceName = false; 
+  bool isCustomDeviceType = false;
 
-  // Prebuilt device names
   final List<String> deviceNames = [
-    "Custom", // Custom option for user-defined device names
+    "Custom", 
     "Living Room Light",
     "Bedroom Fan",
     "Smart TV",
     "Air Conditioner",
   ];
 
-  // Prebuilt device types
   final List<String> deviceTypes = [
+    "Custom", 
     "Light",
     "Fan",
     "Television",
     "Air Conditioner",
-    "Heater",
   ];
 
   @override
@@ -46,7 +45,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Dropdown for Prebuilt Device Names
+            // Device Name Dropdown
             DropdownButtonFormField<String>(
               value: selectedDeviceName,
               items: deviceNames.map((String name) {
@@ -70,7 +69,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
             ),
             SizedBox(height: 20),
 
-            // Show custom device name input field if "Custom" is selected
+            // Custom Device Name TextField
             if (isCustomDeviceName)
               TextField(
                 controller: nameController,
@@ -78,7 +77,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
               ),
             SizedBox(height: 20),
 
-            // Dropdown for Device Type
+            // Device Type Dropdown
             DropdownButtonFormField<String>(
               value: selectedDeviceType,
               items: deviceTypes.map((String type) {
@@ -90,13 +89,27 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
               onChanged: (String? newValue) {
                 setState(() {
                   selectedDeviceType = newValue!;
+                  isCustomDeviceType = selectedDeviceType == "Custom";
+                  if (!isCustomDeviceType) {
+                    typeController.text = selectedDeviceType;
+                  } else {
+                    typeController.clear();
+                  }
                 });
               },
               decoration: InputDecoration(labelText: "Select Device Type"),
             ),
             SizedBox(height: 20),
 
-            // Input field for Power Consumption
+            // Custom Device Type TextField
+            if (isCustomDeviceType)
+              TextField(
+                controller: typeController,
+                decoration: InputDecoration(labelText: "Custom Device Type"),
+              ),
+            SizedBox(height: 20),
+
+            // Power Consumption TextField
             TextField(
               controller: powerController,
               keyboardType: TextInputType.number,
@@ -107,27 +120,36 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
             ),
             SizedBox(height: 30),
 
+            // Add Device Button
             ElevatedButton(
               onPressed: () {
                 // Validate input fields
                 if ((isCustomDeviceName && nameController.text.isEmpty) ||
+                    (isCustomDeviceType && typeController.text.isEmpty) ||
                     powerController.text.isEmpty) {
                   Get.snackbar("Error", "Please enter all the required fields");
                   return;
                 }
 
-                // Create a new device object
+                // Validate power consumption input
+                final power = int.tryParse(powerController.text.trim());
+                if (power == null || power <= 0) {
+                  Get.snackbar("Error", "Please enter a valid power consumption value.");
+                  return;
+                }
+
+                // Create a new Device object
                 Device newDevice = Device(
                   deviceName: isCustomDeviceName ? nameController.text.trim() : selectedDeviceName,
-                  deviceType: selectedDeviceType,
-                  status: "off", // Default status is "off"
-                  powerConsumption: int.tryParse(powerController.text.trim()) ?? 0,
+                  deviceType: isCustomDeviceType ? typeController.text.trim() : selectedDeviceType,
+                  status: "off",
+                  powerConsumption: power,
                 );
 
-                // Call the addDevice method to add it to Firestore
+                // Add device through the controller
                 deviceController.addDevice(newDevice);
 
-                // Go back to the HomeScreen
+                // Navigate back after adding the device
                 Get.back();
               },
               child: Text("Add Device"),

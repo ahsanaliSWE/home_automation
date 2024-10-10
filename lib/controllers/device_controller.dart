@@ -2,22 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../models/device.dart';
-import '../models/device_usage.dart';
-import '../models/notification_preference.dart';
 import '../utils/notifications_service.dart';
 
 class DeviceController extends GetxController {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   RxList<Device> devices = RxList<Device>();
-  RxList<DeviceUsage> deviceUsageLogs = RxList<DeviceUsage>();
   RxDouble totalPowerConsumption =
       0.0.obs; // Total power consumption (in watts)
   RxDouble powerThreshold =
       1000.0.obs; // Observed power threshold (default 1000 watts)
   RxBool isThresholdCrossed =
       false.obs; // Track if the threshold has been crossed
-  NotificationPreferences notificationPreferences =
-      NotificationPreferences(); // Initialize notification preferences
+
 
   // Get the currently authenticated user ID
   String get userId => FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -27,7 +23,6 @@ class DeviceController extends GetxController {
     super.onInit();
     // Load devices and notification preferences from Firestore when the controller is initialized
     loadDevices();
-    loadNotificationPreferences();
   }
 
   // Load all devices for the authenticated user from Firestore
@@ -196,58 +191,6 @@ class DeviceController extends GetxController {
     }
   }
 
-  // Load energy usage logs for a specific device
-  void loadEnergyUsageLogs(String deviceId) async {
-    if (userId.isEmpty) {
-      Get.snackbar("Error", "User not authenticated");
-      return;
-    }
-
-    try {
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('devices')
-          .doc(deviceId)
-          .collection('energy_usage')
-          .orderBy('timestamp', descending: true)
-          .get();
-
-      deviceUsageLogs.clear();
-      for (var doc in snapshot.docs) {
-        deviceUsageLogs.add(DeviceUsage.fromJson(doc.data()..['id'] = doc.id));
-      }
-    } catch (e) {
-      Get.snackbar("Error", "Failed to load energy usage logs: $e");
-    }
-  }
-
-  // Method to add energy usage logs to a device
-  void addEnergyUsage(String deviceId, double energyConsumed) async {
-    if (userId.isEmpty) {
-      Get.snackbar("Error", "User not authenticated");
-      return;
-    }
-
-    try {
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('devices')
-          .doc(deviceId)
-          .collection('energy_usage')
-          .add({
-        'deviceId': deviceId,
-        'energyConsumed': energyConsumed,
-        'timestamp': DateTime.now(),
-      });
-
-      // Optionally, reload the usage logs after adding a new entry
-      loadEnergyUsageLogs(deviceId);
-    } catch (e) {
-      Get.snackbar("Error", "Failed to log energy usage: $e");
-    }
-  }
 
   // Method to delete a device from Firestore and the local list
   void deleteDevice(String deviceId) async {
@@ -299,58 +242,7 @@ class DeviceController extends GetxController {
     );
   }
 
-  void loadNotificationPreferences() async {
-    // Code to fetch preferences from Firestore
-    // Assuming you've fetched a Map<String, dynamic> json from Firestore
-    Map<String, dynamic> json = {}; // Fetch this from Firestore
 
-    notificationPreferences = NotificationPreferences.fromJson(json);
-  }
-
-  // Update user notification preferences
-  void updateNotificationPreference(String preferenceType, bool value) {
-    switch (preferenceType) {
-      case 'deviceStatusChange':
-        notificationPreferences.deviceStatusChange.value =
-            value; // Update the observable
-        break;
-      case 'securityAlerts':
-        notificationPreferences.securityAlerts.value =
-            value; // Update the observable
-        break;
-      case 'energyThreshold':
-        notificationPreferences.energyThreshold.value =
-            value; // Update the observable
-        break;
-    }
-
-    // Save preferences to Firestore whenever a change is made
-    saveNotificationPreferences(); // Call to save preferences
-  }
-
-// Save notification preferences to Firestore
-  void saveNotificationPreferences() async {
-    if (userId.isEmpty) {
-      Get.snackbar("Error", "User not authenticated");
-      return;
-    }
-
-    try {
-      // Save the notification preferences to Firestore
-      await _firestore.collection('users').doc(userId).set(
-        {
-          'notificationPreferences': notificationPreferences.toJson(),
-        },
-        SetOptions(
-            merge:
-                true), // Use merge to update only the notification preferences
-      );
-
-      Get.snackbar("Success", "Notification preferences updated successfully!");
-    } catch (e) {
-      Get.snackbar("Error", "Failed to update notification preferences: $e");
-    }
-  }
 
   // Set a new power threshold
   void setPowerThreshold(double newThreshold) {

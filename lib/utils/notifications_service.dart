@@ -32,7 +32,6 @@ class NotificationService {
     await _notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (response) {
-        // Handle notification tap actions here
       },
     );
     // Request notification permissions
@@ -45,8 +44,11 @@ class NotificationService {
       print("Firebase Messaging Token: $token");
     }
 
-    // Handle incoming foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      String title = message.notification?.title ?? "New Notification";
+      String body = message.notification?.body ?? "You have a new alert";
+      _logNotificationToFirestore(title, body);
+
       showNotification(
         id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
         title: message.notification?.title ?? "New Notification",
@@ -80,8 +82,29 @@ class NotificationService {
       print("Failed to log notification: $e");
     }
   }
+  // Method to log notification to Firestore
+  static Future<void> _logNotificationToFirestore(String title, String body) async {
+    try {
+      // Get the current authenticated user
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
 
-  // Show a basic notification
+      if (userId == null) {
+        print("Error: No authenticated user.");
+        return;
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(userId).collection('notifications').add({
+        'title': title,
+        'body': body,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      print("Notification stored in Firestore.");
+    } catch (e) {
+      print("Error storing notification: $e");
+    }
+  }
+
   static Future<void> showNotification({
     required int id,
     required String title,

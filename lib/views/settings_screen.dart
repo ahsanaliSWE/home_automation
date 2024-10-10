@@ -45,56 +45,6 @@ class SettingsScreen extends StatelessWidget {
                   }
                 },
               ),
-              SizedBox(height: 30),
-        
-              // Notification Preferences Section
-              Text(
-                "Notification Preferences",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-        
-              // Use Obx to listen to deviceStatusChange notifications
-              Obx(() {
-                return SwitchListTile(
-                  title: Text("Device Status Change Alerts"),
-                  value: deviceController.notificationPreferences.energyThreshold.value,
-                  onChanged: (value) {
-                    deviceController.updateNotificationPreference(
-                      'deviceStatusChange',
-                      value,
-                    );
-                  },
-                );
-              }),
-        
-              // Security Alerts Notification Toggle
-              Obx(() {
-                return SwitchListTile(
-                  title: Text("Security Alerts"),
-                  value: deviceController.notificationPreferences.energyThreshold.value,
-                  onChanged: (value) {
-                    deviceController.updateNotificationPreference(
-                      'securityAlerts',
-                      value,
-                    );
-                  },
-                );
-              }),
-        
-              // Energy Consumption Alerts Notification Toggle
-              Obx(() {
-                return SwitchListTile(
-                  title: Text("Energy Consumption Alerts"),
-                  value: deviceController.notificationPreferences.energyThreshold.value,
-                  onChanged: (value) {
-                    deviceController.updateNotificationPreference(
-                      'energyThreshold',
-                      value,
-                    );
-                  },
-                );
-              }),
             ],
           ),
         ),
