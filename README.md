@@ -37,7 +37,7 @@ This project is a **Home Automation** that integrates various IoT devices, enabl
   - **Firestore**: For storing user data, device details, notifications, etc.
   - **Firebase Authentication**: For secure user authentication and profile management.
   - **Firebase Cloud Messaging (FCM)**: For sending push notifications.
-  - **Firebase Functions**: (Optional) For server-side processing such as sending scheduled notifications.
+  - **Firebase Functions**: For server-side processing such as sending scheduled notifications.
 - **GetX**: State management and navigation.
 
 ## Installation
